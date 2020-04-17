@@ -3,7 +3,7 @@ import { Platform, StatusBar, StyleSheet, View } from 'react-native'
 import { SplashScreen } from 'expo'
 import * as Font from 'expo-font'
 import { Ionicons } from '@expo/vector-icons'
-import { NavigationContainer } from '@react-navigation/native'
+import { NavigationContainer, DarkTheme as Dark } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
 import BottomTabNavigator from './navigation/BottomTabNavigator'
 import useLinking from './navigation/useLinking'
@@ -53,20 +53,24 @@ export default function App({ skipLoadingScreen }: Props) {
     loadResourcesAndDataAsync()
   }, [])
 
-  const customTheme = {
-    ...DarkTheme,
-    dark: false,
+  const theme = {
     roundness: 4,
+    dark: true,
     colors: {
-      primary: '#034748',
-      accent: '#11B5E4',
-      background: '#F1F7ED',
-      surface: '#F1F7ED',
-      text: '#001021',
-      error: '#B71F0E',
-      disabled: '#BEC6C6',
-      placeholder: '#1481BA',
-      backdrop: '#001021',
+      ...DarkTheme.colors,
+    },
+    fonts: {
+      ...DarkTheme.fonts,
+    },
+    animation: {
+      scale: 1.0,
+    },
+  }
+
+  const darkNavigationTheme = {
+    ...Dark,
+    colors: {
+      ...Dark.colors,
     },
   }
 
@@ -80,8 +84,12 @@ export default function App({ skipLoadingScreen }: Props) {
           <Store.Consumer>
             {() => {
               return (
-                <PaperProvider theme={customTheme}>
-                  <NavigationContainer ref={containerRef} initialState={initialNavigationState}>
+                <PaperProvider theme={theme}>
+                  <NavigationContainer
+                    theme={darkNavigationTheme}
+                    ref={containerRef}
+                    initialState={initialNavigationState}
+                  >
                     <Stack.Navigator>
                       <Stack.Screen name='Root' component={BottomTabNavigator} />
                     </Stack.Navigator>

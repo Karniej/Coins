@@ -1,24 +1,34 @@
-import * as React from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Platform, StatusBar, StyleSheet, View } from 'react-native'
 import { SplashScreen } from 'expo'
 import * as Font from 'expo-font'
 import { Ionicons } from '@expo/vector-icons'
 import { NavigationContainer } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
-
 import BottomTabNavigator from './navigation/BottomTabNavigator'
 import useLinking from './navigation/useLinking'
+import { DarkTheme, Provider as PaperProvider } from 'react-native-paper'
 
+import { StoreProvider, Store } from './Store'
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+})
+type Props = {
+  skipLoadingScreen: boolean
+}
 const Stack = createStackNavigator()
 
-export default function App(props) {
-  const [isLoadingComplete, setLoadingComplete] = React.useState(false)
-  const [initialNavigationState, setInitialNavigationState] = React.useState()
-  const containerRef = React.useRef()
+export default function App({ skipLoadingScreen }: Props) {
+  const [isLoadingComplete, setLoadingComplete] = useState(false)
+  const [initialNavigationState, setInitialNavigationState] = useState()
+  const containerRef = useRef()
   const { getInitialState } = useLinking(containerRef)
 
   // Load any resources or data that we need prior to rendering the app
-  React.useEffect(() => {
+  useEffect(() => {
     async function loadResourcesAndDataAsync() {
       try {
         SplashScreen.preventAutoHide()
@@ -43,25 +53,45 @@ export default function App(props) {
     loadResourcesAndDataAsync()
   }, [])
 
-  if (!isLoadingComplete && !props.skipLoadingScreen) {
+  const customTheme = {
+    ...DarkTheme,
+    dark: false,
+    roundness: 4,
+    colors: {
+      primary: '#034748',
+      accent: '#11B5E4',
+      background: '#F1F7ED',
+      surface: '#F1F7ED',
+      text: '#001021',
+      error: '#B71F0E',
+      disabled: '#BEC6C6',
+      placeholder: '#1481BA',
+      backdrop: '#001021',
+    },
+  }
+
+  if (!isLoadingComplete && !skipLoadingScreen) {
     return null
   } else {
     return (
       <View style={styles.container}>
         {Platform.OS === 'ios' && <StatusBar barStyle='default' />}
-        <NavigationContainer ref={containerRef} initialState={initialNavigationState}>
-          <Stack.Navigator>
-            <Stack.Screen name='Root' component={BottomTabNavigator} />
-          </Stack.Navigator>
-        </NavigationContainer>
+        <StoreProvider>
+          <Store.Consumer>
+            {() => {
+              return (
+                <PaperProvider theme={customTheme}>
+                  <NavigationContainer ref={containerRef} initialState={initialNavigationState}>
+                    <Stack.Navigator>
+                      <Stack.Screen name='Root' component={BottomTabNavigator} />
+                    </Stack.Navigator>
+                  </NavigationContainer>
+                </PaperProvider>
+              )
+            }}
+          </Store.Consumer>
+        </StoreProvider>
       </View>
     )
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-})
